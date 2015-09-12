@@ -1,0 +1,90 @@
+* uconf
+uconf is an package parse configuration file like haproxy.conf
+* Install
+#+BEGIN_SRC sh
+$ go get -u github.com/zifeiwoo/uconf
+#+END_SRC
+* configure file example
+#+BEGIN_SRC conf
+global 
+	maxconn 50000 
+	daemon 
+	stats socket /var/run/haproxy.stat mode 777 #comment after ;#
+defaults 
+	stats enable 
+	option httpchk HEAD /haproxy?monitor HTTP/1.0 #
+	timeout check 5s 
+listen s 0.0.0.0:80 
+	monitor-uri /haproxy?monitor 
+	monitor fail if 
+	server 10.0.0.x:80 10.0.0.x:80 maxconn 25 check inter 5s rise 3 fall 2 
+	acl servers_down nbsrv(servers) lt 1 
+listen s 0.0.0.0:443 
+	mode tcp 
+	option ssl-hello-chk 
+	server server1 10.0.0.x:443 maxconn 25 check inter 5s rise 18 fall 3
+	server server2 10.0.0.x:443 maxconn 25 check inter 4s rise 8 fall 2 
+#+END_SRC
+* Usage
+#+BEGIN_SRC go
+package main
+
+import (
+	"fmt"
+
+	"github.com/zifeiwoo/uconf"
+)
+
+func main() {
+	cf := uconf.NewConfigFile()
+	cf.SetSectionName([]string{"global", "defaults", "listen", ""}...)
+	cf.LoadFile("test.cfg")
+	//cf.PrintConf()
+	//list section
+	for name, sections := range cf.GetALLSection() {
+		fmt.Println("section:", name)
+		for _, section := range sections {
+			for _, value := range section.GetAllSliceValue() {
+				fmt.Printf("%s ", value)
+			}
+		}
+		fmt.Printf("\n")
+	}
+	fmt.Printf("\n")
+	//get one section
+	s, err := cf.GetSectionIndex("listen", 0)
+	if err != nil {
+		return
+	}
+	fmt.Println("Get value from key:", s.GetValue("s"))
+	fmt.Println("Get value from index:", s.GetValueIndex(1))
+	//get keys
+	keys, err := cf.GetKeysIndex("listen", 1)
+	if err != nil {
+		return
+	}
+	//for key, values := range keys {
+	values := keys["server"]
+	fmt.Println("section:listen,key:server")
+	for index, value := range values {
+		fmt.Printf("server index:%d,Get inter param:%s\n", index, value.GetValue("inter"))
+	}
+}
+#+END_SRC 
+* Output
+#+BEGIN_SRC sh
+section: listen
+s 0.0.0.0:80 s 0.0.0.0:443 
+section: global
+
+section: defaults
+
+
+Get value from key: 0.0.0.0:80
+Get value from index: 0.0.0.0:80
+section:listen,key:server
+server index:0,Get inter param:5s
+server index:1,Get inter param:4s
+
+#+END_SRC
+
