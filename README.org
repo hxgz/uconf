@@ -2,7 +2,7 @@
 uconf is an package parse configuration file like haproxy.conf
 * Install
 #+BEGIN_SRC sh
-$ go get -u github.com/zifeiwoo/uconf
+$ go get -u github.com/hxgz/uconf
 #+END_SRC
 * configure file example
 #+BEGIN_SRC conf
@@ -32,7 +32,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/zifeiwoo/uconf"
+	"github.com/hxgz/uconf"
 )
 
 func main() {

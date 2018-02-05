@@ -28,7 +28,7 @@
 // import (
 // 	"fmt"
 
-// 	"github.com/zifeiwoo/uconf"
+// 	"github.com/hxgz/uconf"
 // )
 
 // func main() {
